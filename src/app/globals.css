@@ -1,12 +1,15 @@
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: #fcfcfc;
+  --foreground: #09090b;
   --primary: #000000;
   --secondary: #f4f4f5;
   --accent: #e4e4e7;
   --muted: #71717a;
-  --border: #e4e4e7;
-  --radius: 0.5rem;
+  --border: #e2e8f0;
+  --radius: 1rem;
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
 }
 
 * {
@@ -15,95 +18,139 @@
   margin: 0;
 }
 
-html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background: var(--background);
+  background: radial-gradient(circle at top right, #f8fafc, #ffffff);
   color: var(--foreground);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
 }
 
-input, select, textarea {
-  width: 100%;
-  padding: 0.75rem;
-  margin-top: 0.5rem;
+.card {
+  background: white;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.2s;
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-input:focus {
-  border-color: var(--primary);
+.card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08);
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+h1, h2, h3 {
+  font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
 button {
-  cursor: pointer;
-  padding: 0.75rem 1.5rem;
-  border: none;
   border-radius: var(--radius);
-  font-size: 1rem;
-  font-weight: 500;
-  transition: opacity 0.2s, transform 0.1s;
-}
-
-button:active {
-  transform: scale(0.98);
+  font-weight: 600;
+  padding: 0.875rem 1.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
 }
 
 button.primary {
   background: var(--primary);
-  color: var(--background);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+button.primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
 }
 
 button.secondary {
-  background: var(--secondary);
+  background: white;
   color: var(--foreground);
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.card {
-  background: var(--background);
   border: 1px solid var(--border);
+}
+
+button.secondary:hover {
+  background: var(--secondary);
+}
+
+input, select {
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  padding: 0.875rem 1rem;
+  background: white;
+  transition: all 0.2s;
+}
+
+input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+  outline: none;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-primary { background: #000; color: #fff; }
+.badge-secondary { background: #f1f5f9; color: #64748b; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.upload-zone {
+  border: 2px dashed var(--border);
   border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-}
-
-.container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.step-header {
-  margin-bottom: 2rem;
+  padding: 3rem;
   text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fafafa;
 }
 
-.step-header h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+.upload-zone:hover {
+  border-color: var(--primary);
+  background: #f4f4f5;
 }
 
-.button-group {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2rem;
-  gap: 1rem;
+.analyzer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
 }
 
-.hidden {
-  display: none;
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
