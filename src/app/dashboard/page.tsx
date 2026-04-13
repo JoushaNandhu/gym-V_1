@@ -17,7 +17,12 @@ import {
   Upload,
   X,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Camera,
+  User as UserIcon,
+  Plus,
+  Minus,
+  PieChart
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -34,6 +39,12 @@ export default function DashboardPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Food analysis state
+  const [isAnalyzingFood, setIsAnalyzingFood] = useState(false);
+  const [foodResult, setFoodResult] = useState<any>(null);
+  const foodInputRef = useRef<HTMLInputElement>(null);
+  const [servingSizes, setServingSizes] = useState<any>({}); // ingredient index -> quantity
 
   useEffect(() => {
     const p = localStorage.getItem("user_profile");
@@ -100,10 +111,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch("/api/analyze", {
           method: "POST",
-          body: JSON.stringify({
-            image: base64String,
-            type: activeAnalyzer
-          })
+          body: JSON.stringify({ image: base64String, type: activeAnalyzer })
         });
         const data = await res.json();
         setAnalysisResult(data);
@@ -116,15 +124,69 @@ export default function DashboardPage() {
     reader.readAsDataURL(file);
   };
 
+  const handleFoodUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsAnalyzingFood(true);
+    setFoodResult(null);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = (reader.result as string).split(',')[1];
+      try {
+        const res = await fetch("/api/analyze-food", {
+          method: "POST",
+          body: JSON.stringify({ image: base64String })
+        });
+        const data = await res.json();
+        setFoodResult(data);
+        // Initialize serving sizes with base quantity from AI
+        const initialSizes: any = {};
+        data.ingredients.forEach((ing: any, i: number) => {
+          initialSizes[i] = ing.baseQuantity;
+        });
+        setServingSizes(initialSizes);
+      } catch (err) {
+        console.error("Food upload failed", err);
+      } finally {
+        setIsAnalyzingFood(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const calculateNutrient = (index: number, type: 'protein' | 'carbs' | 'fat') => {
+    const ing = foodResult.ingredients[index];
+    const qty = servingSizes[index] || 0;
+    const val = (ing[type] / ing.baseQuantity) * qty;
+    return Math.round(val * 10) / 10;
+  };
+
+  const calculateTotal = (type: 'protein' | 'carbs' | 'fat') => {
+    if (!foodResult) return 0;
+    return foodResult.ingredients.reduce((total: number, _: any, i: number) => {
+      return total + calculateNutrient(i, type);
+    }, 0).toFixed(1);
+  };
+
   if (!profile) return <div className="container">Loading...</div>;
 
   return (
     <div className="container">
-      <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-        <div>
-          <span className="badge badge-secondary" style={{ marginBottom: '0.5rem' }}>Overview</span>
-          <h1 style={{ fontSize: '2.5rem' }}>Welcome, {profile.name}</h1>
-          <p style={{ color: 'var(--muted)', fontSize: '1.1rem' }}>Your health dashboard is ready.</p>
+      <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', cursor: 'pointer' }} onClick={() => router.push("/profile")}>
+          <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#000', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+            {profile.profilePic ? (
+              <img src={profile.profilePic} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <UserIcon color="white" size={32} />
+            )}
+          </div>
+          <div>
+            <h1 style={{ fontSize: '1.75rem', lineHeight: 1 }}>{profile.name}</h1>
+            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: '0.4rem' }}>View & Edit Profile <ChevronRight size={14} style={{ display: 'inline', marginLeft: '4px' }} /></p>
+          </div>
         </div>
         <button className="secondary" onClick={() => { localStorage.removeItem("user_session"); router.push("/login"); }}>
           Sign Out
@@ -167,103 +229,43 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* Analysis Modal/Panel */}
+      {/* Analysis Modals (activeAnalyzer logic remains the same) */}
       <AnimatePresence>
         {activeAnalyzer && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           >
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="card"
-              style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="card" style={{ width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}
             >
-              <button 
-                onClick={() => setActiveAnalyzer(null)}
-                style={{ position: 'absolute', right: '1rem', top: '1rem', padding: '0.5rem', background: 'transparent' }}
-              >
-                <X size={20} />
-              </button>
-
+              <button onClick={() => setActiveAnalyzer(null)} style={{ position: 'absolute', right: '1rem', top: '1rem', padding: '0.5rem', background: 'transparent' }}><X size={20} /></button>
               <div style={{ marginBottom: '2rem' }}>
                 <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>{activeAnalyzer} Analyzer</h2>
-                <p style={{ color: 'var(--muted)' }}>Upload an image or document to extract precise results.</p>
+                <p style={{ color: 'var(--muted)' }}>Upload an image to extract precise results.</p>
               </div>
-
               {!analysisResult && !isAnalyzing && (
                 <div className="upload-zone" onClick={() => fileInputRef.current?.click()}>
                   <Upload size={40} style={{ margin: '0 auto 1rem', color: 'var(--muted)' }} />
                   <p style={{ fontWeight: 600 }}>Click to upload or drag & drop</p>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: '0.25rem' }}>Supports JPG, PNG (Max 5MB)</p>
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    ref={fileInputRef} 
-                    onChange={handleFileUpload} 
-                    accept="image/*"
-                  />
+                  <input type="file" className="hidden" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" />
                 </div>
               )}
-
-              {isAnalyzing && (
-                <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-                  <RefreshCw className="spinning" size={48} style={{ margin: '0 auto 1.5rem', color: 'var(--primary)' }} />
-                  <p style={{ fontWeight: 600, fontSize: '1.2rem' }}>AI is decoding your {activeAnalyzer}...</p>
-                  <p style={{ color: 'var(--muted)', marginTop: '0.5rem' }}>Extracting precise values and medical metrics</p>
-                </div>
-              )}
-
+              {isAnalyzing && <div style={{ textAlign: 'center', padding: '4rem 0' }}><RefreshCw className="spinning" size={48} style={{ margin: '0 auto 1.5rem', color: 'var(--primary)' }} /><p>AI is decoding your {activeAnalyzer}...</p></div>}
               {analysisResult && (
                 <div className="animate-fade-in">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '0.75rem' }}>
-                    <CheckCircle2 color="#10b981" />
-                    <div>
-                      <p style={{ fontWeight: 700 }}>Analysis Complete</p>
-                      <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>Precision Match: 99.9%</p>
-                    </div>
-                  </div>
-
                   <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>{analysisResult.title}</h3>
-                  <p style={{ marginBottom: '2rem', lineHeight: 1.6 }}>{analysisResult.summary}</p>
-
-                  <h4 style={{ fontSize: '0.9rem', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: '1rem', fontWeight: 700, letterSpacing: '0.05em' }}>Extracted Metrics</h4>
+                  <p style={{ marginBottom: '2rem' }}>{analysisResult.summary}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
                     {analysisResult.metrics?.map((m: any, i: number) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
-                        <div>
-                          <p style={{ fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 600 }}>{m.label}</p>
-                          <p style={{ fontSize: '1.25rem', fontWeight: 800 }}>{m.value} <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{m.unit}</span></p>
-                        </div>
-                        <span style={{ 
-                          padding: '0.4rem 0.75rem', 
-                          borderRadius: '2rem', 
-                          fontSize: '0.75rem', 
-                          fontWeight: 700, 
-                          background: m.status === 'Normal' ? '#ecfdf5' : '#fef2f2',
-                          color: m.status === 'Normal' ? '#059669' : '#dc2626'
-                        }}>
-                          {m.status}
-                        </span>
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', border: '1px solid var(--border)', borderRadius: '0.75rem' }}>
+                        <div><p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{m.label}</p><p style={{ fontSize: '1.25rem', fontWeight: 800 }}>{m.value} {m.unit}</p></div>
+                        <span style={{ padding: '0.4rem 0.75rem', borderRadius: '2rem', fontSize: '0.75rem', background: m.status === 'Normal' ? '#ecfdf5' : '#fef2f2', color: m.status === 'Normal' ? '#059669' : '#dc2626' }}>{m.status}</span>
                       </div>
                     ))}
                   </div>
-
-                  <div style={{ padding: '1.5rem', background: '#111', color: '#fff', borderRadius: '1rem' }}>
-                    <p style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.5rem', fontWeight: 600 }}>HEALTH INSIGHT</p>
-                    <p style={{ lineHeight: 1.6, fontSize: '0.95rem' }}>{analysisResult.interpretation}</p>
-                  </div>
-
-                  <button 
-                    className="secondary" 
-                    style={{ width: '100%', marginTop: '2rem' }} 
-                    onClick={() => { setAnalysisResult(null); setIsAnalyzing(false); }}
-                  >
-                    Analyze Another Report
-                  </button>
+                  <div style={{ padding: '1.5rem', background: '#111', color: '#fff', borderRadius: '1rem' }}><p>{analysisResult.interpretation}</p></div>
                 </div>
               )}
             </motion.div>
@@ -272,134 +274,130 @@ export default function DashboardPage() {
       </AnimatePresence>
 
       <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '2rem', marginBottom: '3rem' }}>
-        {/* BMI Card - Redesigned */}
-        <div className="card glass" style={{ position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '150px', height: '150px', background: 'rgba(0,0,0,0.03)', borderRadius: '50%' }} />
-          
+        <div className="card glass">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Scale size={20} /> Body Mass Index
-            </h2>
-            <button className="secondary" style={{ padding: '0.5rem' }} onClick={() => setIsEditingBmi(!isEditingBmi)}>
-              <Edit2 size={16} />
-            </button>
+            <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Scale size={20} /> Body Mass Index</h2>
+            <button className="secondary" style={{ padding: '0.5rem' }} onClick={() => setIsEditingBmi(!isEditingBmi)}><Edit2 size={16} /></button>
           </div>
-          
-          {isEditingBmi ? (
-            <form onSubmit={handleUpdateBmi} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Weight ({profile.weightUnit || 'kg'})</label>
-                <input 
-                  type="number" 
-                  value={profile.weight} 
-                  onChange={e => setProfile({...profile, weight: e.target.value})}
-                />
-              </div>
-              <button type="submit" className="primary" style={{ marginTop: '0.5rem' }}>Save Changes</button>
-            </form>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-              <div style={{ background: 'black', color: 'white', padding: '1.5rem 2rem', borderRadius: '1.5rem', textAlign: 'center' }}>
-                <span style={{ fontSize: '3.5rem', fontWeight: 900 }}>{bmi}</span>
-              </div>
-              <div>
-                <p style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>
-                  {bmi && bmi < 18.5 ? "Underweight" : bmi && bmi < 25 ? "Healthy Weight" : "Overweight"}
-                </p>
-                <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Based on your latest profile update.</p>
-              </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+            <div style={{ background: 'black', color: 'white', padding: '1.5rem 2rem', borderRadius: '1.5rem', textAlign: 'center' }}>
+              <span style={{ fontSize: '3.5rem', fontWeight: 900 }}>{bmi}</span>
             </div>
-          )}
+            <div>
+              <p style={{ fontSize: '1.25rem', fontWeight: 700 }}>{bmi && bmi < 18.5 ? "Underweight" : bmi && bmi < 25 ? "Healthy Weight" : "Overweight"}</p>
+              <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Based on your latest update.</p>
+            </div>
+          </div>
         </div>
-
-        {/* Goal Card - Redesigned */}
-        <div className="card primary" style={{ background: 'black', color: 'white' }}>
-          <p style={{ opacity: 0.6, fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Current Goal</p>
+        <div className="card" style={{ background: 'black', color: 'white' }}>
+          <p style={{ opacity: 0.6, fontSize: '0.85rem', fontWeight: 700 }}>CURRENT GOAL</p>
           <h2 style={{ fontSize: '2rem', margin: '0.5rem 0' }}>{profile.goal}</h2>
-          <div style={{ height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', marginTop: '1.5rem', position: 'relative' }}>
+          <div style={{ height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '2px', marginTop: '1.5rem' }}>
              <div style={{ height: '100%', width: '45%', background: 'white', borderRadius: '2px' }} />
           </div>
-          <p style={{ fontSize: '0.8rem', marginTop: '0.75rem', opacity: 0.8 }}>45% of path completed</p>
+          <p style={{ fontSize: '0.8rem', marginTop: '0.75rem', opacity: 0.8 }}>45% completed</p>
         </div>
       </div>
 
-      {/* Diet Plan - Redesigned */}
-      <section className="card animate-fade-in" style={{ padding: '2.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+      {/* Diet Plan Section with Food Analysis */}
+      <section className="card" style={{ padding: '2.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '1rem', marginBottom: '2.5rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <Utensils size={28} /> AI-Powered Nutrition
-            </h2>
-            <p style={{ color: 'var(--muted)', marginTop: '0.25rem' }}>Precision meal plans for {profile.state}, {profile.country}</p>
+            <h2 style={{ fontSize: '1.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}><Utensils size={28} /> AI Nutrition & Tracker</h2>
+            <p style={{ color: 'var(--muted)', marginTop: '0.25rem' }}>Upload your meal to analyze nutrients instantly.</p>
           </div>
-          <button className="primary" onClick={generateDiet} disabled={loadingDiet}>
-            {dietPlan ? <><RefreshCw size={18} /> Regenerate</> : "Generate Diet"}
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button className="secondary" style={{ padding: '0.75rem' }} onClick={() => foodInputRef.current?.click()}>
+              <Camera size={20} /> <span style={{ marginLeft: '4px' }}>Analyze Meal</span>
+            </button>
+            <input type="file" ref={foodInputRef} className="hidden" onChange={handleFoodUpload} accept="image/*" />
+            <button className="primary" onClick={generateDiet} disabled={loadingDiet}>
+              {dietPlan ? "Refresh Plan" : "Get Plan"}
+            </button>
+          </div>
         </div>
 
-        {!dietPlan && !loadingDiet && (
-          <div style={{ textAlign: 'center', padding: '4rem 0', opacity: 0.5 }}>
-            <Utensils size={48} style={{ margin: '0 auto 1rem' }} />
-            <p>Your personalized diet plan will appear here.</p>
-          </div>
-        )}
+        {/* Food Analysis Result Section */}
+        <AnimatePresence>
+          {isAnalyzingFood && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: 'center', padding: '3rem 0' }}>
+              <RefreshCw className="spinning" size={40} style={{ margin: '0 auto 1rem' }} />
+              <p style={{ fontWeight: 600 }}>Identifying ingredients & vitamins...</p>
+            </motion.div>
+          )}
 
-        {loadingDiet && (
-          <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-            <RefreshCw size={40} className="spinning" style={{ margin: '0 auto', color: 'var(--primary)' }} />
-            <p style={{ marginTop: '1.5rem', fontWeight: 600 }}>Personalizing your plan...</p>
-          </div>
-        )}
-
-        {dietPlan && !loadingDiet && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase' }}>Target Calories</p>
-                <p style={{ fontSize: '2rem', fontWeight: 900 }}>{dietPlan.totalCalories} <span style={{ fontSize: '1rem', fontWeight: 500 }}>kcal</span></p>
+          {foodResult && !isAnalyzingFood && (
+            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="card" style={{ background: '#f8fafc', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontSize: '1.5rem' }}>🍱 {foodResult.dishName}</h3>
+                <button onClick={() => setFoodResult(null)}><X size={20} /></button>
               </div>
-              <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '1rem', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase' }}>Protein Budget</p>
-                <p style={{ fontSize: '2rem', fontWeight: 900 }}>{dietPlan.proteinSuggestion}</p>
-              </div>
-            </div>
 
-            <div style={{ background: '#f1f5f9', padding: '1.25rem', borderRadius: '1rem', marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'start' }}>
-              <AlertCircle size={20} style={{ marginTop: '0.1rem', color: '#64748b' }} />
-              <div>
-                <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>Regional Preferences Integrated</p>
-                <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.5 }}>{dietPlan.regionalNote}</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              {dietPlan.dietPlan.map((item: any, i: number) => (
-                <div key={i} className="card" style={{ padding: '1.5rem', borderRadius: '1rem', transition: 'none', border: '1px solid #f1f5f9' }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <span style={{ fontWeight: 800, fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{item.time}</span>
-                    <button style={{ background: 'transparent', padding: 0 }}><ChevronRight size={16} color="#cbd5e1" /></button>
-                   </div>
-                   <p style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{item.meal}</p>
-                   <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.5 }}>{item.description}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+                <div style={{ textAlign: 'center', padding: '1rem', background: '#fff', borderRadius: '0.75rem' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Protein</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{calculateTotal('protein')}g</p>
                 </div>
-              ))}
-            </div>
-
-            <div style={{ marginTop: '3rem', padding: '2rem', background: '#fafafa', borderRadius: '1.5rem', border: '1px solid var(--border)' }}>
-              <p style={{ fontWeight: 800, marginBottom: '0.75rem', fontSize: '1.1rem' }}>Smart Replacement</p>
-              <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Don't like a specific food? Tell AI to replace it with an equivalent.</p>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Replace eggs with vegetarian option" 
-                  value={dislikedFood} 
-                  onChange={e => setDislikedFood(e.target.value)}
-                  style={{ flex: 1, border: '1px solid #cbd5e1' }}
-                />
-                <button className="primary" onClick={generateDiet}>Update Plan</button>
+                <div style={{ textAlign: 'center', padding: '1rem', background: '#fff', borderRadius: '0.75rem' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Carbs</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{calculateTotal('carbs')}g</p>
+                </div>
+                <div style={{ textAlign: 'center', padding: '1rem', background: '#fff', borderRadius: '0.75rem' }}>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Fat</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{calculateTotal('fat')}g</p>
+                </div>
               </div>
-            </div>
-          </motion.div>
+
+              <h4 style={{ fontSize: '0.9rem', color: 'var(--muted)', fontWeight: 700, marginBottom: '1rem' }}>INGREDIENTS & QUANTITY</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {foodResult.ingredients.map((ing: any, i: number) => (
+                  <div key={i} style={{ background: '#fff', padding: '1rem', borderRadius: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <p style={{ fontWeight: 700 }}>{ing.name}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#10b981' }}>{ing.vitamins.join(', ')}</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f1f5f9', borderRadius: '2rem', padding: '0.25rem' }}>
+                        <button className="secondary" style={{ padding: '0.25rem', height: 'auto' }} onClick={() => setServingSizes({...servingSizes, [i]: Math.max(0, servingSizes[i] - 10)})}><Minus size={14} /></button>
+                        <span style={{ fontWeight: 700, width: '40px', textAlign: 'center' }}>{servingSizes[i]}{ing.unit}</span>
+                        <button className="secondary" style={{ padding: '0.25rem', height: 'auto' }} onClick={() => setServingSizes({...servingSizes, [i]: servingSizes[i] + 10})}><Plus size={14} /></button>
+                      </div>
+                      <div style={{ textAlign: 'right', minWidth: '60px' }}>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>Protein</p>
+                        <p style={{ fontWeight: 800 }}>{calculateNutrient(i, 'protein')}g</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Existing Diet Plan Display (dietPlan logic) */}
+        {dietPlan && !loadingDiet && !foodResult && (
+           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              {/* Previous dietPlan display logic... */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '1rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>TARGET CALORIES</p>
+                  <p style={{ fontSize: '2rem', fontWeight: 900 }}>{dietPlan.totalCalories} kcal</p>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '1rem' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>PROTEIN BUDGET</p>
+                  <p style={{ fontSize: '2rem', fontWeight: 900 }}>{dietPlan.proteinSuggestion}</p>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {dietPlan.dietPlan.map((item: any, i: number) => (
+                  <div key={i} className="card" style={{ padding: '1.5rem' }}>
+                    <p style={{ fontWeight: 800, fontSize: '0.75rem', color: '#94a3b8' }}>{item.time}</p>
+                    <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{item.meal}</p>
+                    <p style={{ fontSize: '0.9rem', color: '#475569' }}>{item.description}</p>
+                  </div>
+                ))}
+              </div>
+           </motion.div>
         )}
       </section>
     </div>
