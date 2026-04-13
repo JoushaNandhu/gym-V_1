@@ -14,25 +14,40 @@ export async function POST(req: Request) {
     }
 
     const prompt = `
-      Analyze this image of food. Identify all the individual food items present.
-      For each item, provide its estimated nutritional value per 100 units (grams or pieces).
+      You are a World-Class Michelin Chef and Senior Clinical Nutritionist. 
+      Analyze this image with extreme precision. 
+      
+      Tasks:
+      1. Identify every single unique food item and ingredient on the plate.
+      2. For each item, provide a detailed nutritional profile per 100g.
       
       Return a JSON object with:
-      - dishName: Name of the overall dish
-      - totalEstimatedCalories: Total calories for the whole plate as shown
+      - dishName: A descriptive name of the meal.
+      - totalEstimatedCalories: Total calories for the entire portion shown.
       - ingredients: Array of objects { 
           name: string, 
-          baseQuantity: number (e.g. 100), 
-          unit: string (e.g. "g" or "piece"),
-          protein: number (grams per baseQuantity), 
-          carbs: number (grams per baseQuantity),
-          fat: number (grams per baseQuantity),
-          vitamins: string[] (key vitamins present)
+          baseQuantity: number (100), 
+          unit: string (g),
+          protein: number, 
+          carbs: number,
+          fat: number,
+          calories: number,
+          vitamins: {
+            vitaminA: string (e.g. "12% DV"),
+            vitaminB: string,
+            vitaminC: string,
+            vitaminD: string,
+            iron: string,
+            calcium: string,
+            zinc: string,
+            magnesium: string
+          },
+          summary: string (brief note on why this is healthy)
         }
     `;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o-mini", // Use gpt-4o-mini as requested
       messages: [
         {
           role: "user",
@@ -47,14 +62,14 @@ export async function POST(req: Request) {
           ],
         },
       ],
-      max_tokens: 1000,
+      max_tokens: 2000,
       response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;
     return NextResponse.json(JSON.parse(content || '{}'));
   } catch (error: any) {
-    console.error("Food Analysis Error:", error);
-    return NextResponse.json({ error: "Failed to identify food" }, { status: 500 });
+    console.error("Advanced Food Analysis Error:", error);
+    return NextResponse.json({ error: "Failed to analyze meal" }, { status: 500 });
   }
 }
