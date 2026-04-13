@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { differenceInYears, differenceInMonths } from "date-fns";
 import { 
-  ChevronRight, ChevronLeft, Sparkles, User, MapPin, Scale, Stethoscope, Target, Calendar as CalendarIcon,
-  Upload, Plus, Trash2, Pill, Activity, ShieldBox, Orbit, Cpu, Zap
+  ChevronRight, ChevronLeft, Sparkles, Target, Calendar as CalendarIcon,
+  Upload, Plus, Trash2, Pill, Activity, Cpu, Zap
 } from "lucide-react";
 
 const countries = ["Australia", "Brazil", "Canada", "France", "Germany", "India", "Japan", "South Africa", "United Kingdom", "USA"].sort();
@@ -35,7 +35,7 @@ export default function OnboardingPage() {
         const today = new Date();
         const years = differenceInYears(today, birthDate);
         const months = differenceInMonths(today, birthDate) % 12;
-        let ageStr = `${years}y ${months}m`;
+        let ageStr = `${years} Years, ${months} Months`;
         setFormData(prev => ({ ...prev, age: ageStr }));
       } catch (e) { console.error(e); }
     }
@@ -70,81 +70,77 @@ export default function OnboardingPage() {
   return (
     <div className="onboarding-bg flex-center" style={{ minHeight: '100vh', background: '#020617', padding: '2rem', position: 'relative', overflow: 'hidden' }}>
       
-      {/* Animated Mesh Gradients for V4 UI */}
-      <div style={{ position: 'absolute', top: '10%', left: '10%', width: '400px', height: '400px', background: 'radial-gradient(circle, #3b82f640 0%, transparent 70%)', filter: 'blur(100px)', zIndex: 0 }} />
-      <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: '400px', height: '400px', background: 'radial-gradient(circle, #8b5cf640 0%, transparent 70%)', filter: 'blur(100px)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: '15%', left: '10%', width: '350px', height: '350px', background: 'radial-gradient(circle, #3b82f630 0%, transparent 70%)', filter: 'blur(100px)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', bottom: '15%', right: '10%', width: '350px', height: '350px', background: 'radial-gradient(circle, #8b5cf630 0%, transparent 70%)', filter: 'blur(100px)', zIndex: 0 }} />
 
       <AnimatePresence mode="wait">
         <motion.div
-           key={step} initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
-           transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
+           key={step} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+           transition={{ duration: 0.4 }}
            className="cyber-card" 
-           style={{ width: '100%', maxWidth: '750px', background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.1)', padding: '5rem', borderRadius: '3rem', position: 'relative', zIndex: 1, boxShadow: '0 40px 100px rgba(0,0,0,0.5)' }}
+           style={{ width: '100%', maxWidth: '700px', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', padding: '5rem', borderRadius: '2.5rem', position: 'relative', zIndex: 1, boxShadow: '0 50px 100px rgba(0,0,0,0.6)' }}
         >
-          {/* Progress Indicator */}
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)' }}>
-            <motion.div initial={{ width: 0 }} animate={{ width: `${(step / 5) * 100}%` }} style={{ height: '100%', background: 'linear-gradient(90deg, #3b82f6, #80e2ff)', boxShadow: '0 0 20px #3b82f6' }} />
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)' }}>
+            <motion.div initial={{ width: 0 }} animate={{ width: `${(step / 5) * 100}%` }} style={{ height: '100%', background: '#3b82f6', boxShadow: '0 0 15px #3b82f6' }} />
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <div style={{ display: 'inline-flex', padding: '0.75rem 1.5rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '2rem', color: '#60a5fa', fontSize: '0.8rem', fontWeight: 900, letterSpacing: '0.2em', marginBottom: '1.5rem' }}>
-              PHASE 0{step} // INITIALIZATION
+            <div style={{ display: 'inline-flex', padding: '0.5rem 1rem', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '1rem', color: '#60a5fa', fontSize: '0.75rem', fontWeight: 900, marginBottom: '1.5rem' }}>
+              STEP 0{step} OF 05
             </div>
-            <h1 style={{ color: '#fff', fontSize: '4.5rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 0.85 }}>
-               {step === 1 && "Biological Identity"}
-               {step === 2 && "Global Node"}
-               {step === 3 && "Physique Axis"}
-               {step === 4 && "Clinical Vault"}
-               {step === 5 && "Operational Goal"}
+            <h1 style={{ color: '#fff', fontSize: '3.5rem', fontWeight: 950, letterSpacing: '-0.02em' }}>
+               {step === 1 && "Personal Information"}
+               {step === 2 && "Locality Details"}
+               {step === 3 && "Physical Details"}
+               {step === 4 && "Medical History"}
+               {step === 5 && "Application Goal"}
             </h1>
           </div>
 
-          <div style={{ minHeight: '400px' }}>
+          <div style={{ minHeight: '380px' }}>
             {step === 1 && (
-              <motion.div initial={{ y: 20 }} animate={{ y: 0 }} style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <div>
-                  <label style={{ color: 'rgba(255,255,255,0.5)' }}>Full Identity Nomenclature</label>
-                  <input className="cyber-input" type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="ENTER FULL NAME" />
+                  <label>Full Name</label>
+                  <input className="cyber-input" type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Enter name" />
                 </div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                   <div>
-                    <label style={{ color: 'rgba(255,255,255,0.5)' }}>Chronological Birth</label>
+                    <label>Date of Birth</label>
                     <input className="cyber-input" type="date" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} />
                   </div>
                   <div>
-                    <label style={{ color: 'rgba(255,255,255,0.5)' }}>Gender Profile</label>
+                    <label>Gender</label>
                     <select className="cyber-input" value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-                        <option value="">SELECT STATUS</option>
-                        <option value="Male">MALE</option>
-                        <option value="Female">FEMALE</option>
-                        <option value="Non-Binary">NON-BINARY</option>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Non-Binary">Non-Binary</option>
                     </select>
                   </div>
                 </div>
-
                 {formData.age && (
-                  <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} style={{ padding: '3rem', background: 'linear-gradient(135deg, #1e40af, #3b82f6)', borderRadius: '2rem', textAlign: 'center', boxShadow: '0 20px 50px rgba(59, 130, 246, 0.3)' }}>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', fontWeight: 900, letterSpacing: '0.3em' }}>CALIBRATED AGE</p>
-                    <h2 style={{ fontSize: '4.5rem', fontWeight: 950, color: '#fff', margin: 0 }}>{formData.age}</h2>
-                  </motion.div>
+                  <div style={{ padding: '2.5rem', background: 'linear-gradient(135deg, #1e40af, #3b82f6)', borderRadius: '1.5rem', textAlign: 'center' }}>
+                    <p style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 800 }}>YOUR CALCULATED AGE</p>
+                    <h2 style={{ fontSize: '3rem', fontWeight: 950, color: '#fff', margin: 0 }}>{formData.age}</h2>
+                  </div>
                 )}
-              </motion.div>
+              </div>
             )}
 
             {step === 2 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-                <div><label>Host Country</label><select className="cyber-input" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value, state: ""})}><option value="">SELECT DOMICILE</option>{countries.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div><label>Local Node (State)</label>{statesMap[formData.country] ? (<select className="cyber-input" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})}><option value="">SELECT STATE</option>{statesMap[formData.country].map((s: string) => <option key={s} value={s}>{s}</option>)}</select>) : (<input className="cyber-input" type="text" value={formData.state} placeholder="TYPE STATE NAME" onChange={e => setFormData({...formData, state: e.target.value})} />)}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                <div><label>Country</label><select className="cyber-input" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value, state: ""})}><option value="">Select Country</option>{countries.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                <div><label>State</label>{statesMap[formData.country] ? (<select className="cyber-input" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})}><option value="">Select State</option>{statesMap[formData.country].map((s: string) => <option key={s} value={s}>{s}</option>)}</select>) : (<input className="cyber-input" type="text" value={formData.state} placeholder="Enter state" onChange={e => setFormData({...formData, state: e.target.value})} />)}</div>
               </div>
             )}
 
             {step === 3 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-                <div><label>Net Biological Mass (kg)</label><input className="cyber-input" type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} placeholder="00.0" /></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
-                  <div><label>Vertical Stature</label><input className="cyber-input" type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} placeholder="000" /></div>
-                  <div><label>Measurement Axis</label><select className="cyber-input" value={formData.heightUnit} onChange={e => setFormData({...formData, heightUnit: e.target.value})}><option value="cm">CM</option><option value="feet">FT</option></select></div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                <div><label>Weight (kg)</label><input className="cyber-input" type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} placeholder="e.g. 70" /></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                  <div><label>Height</label><input className="cyber-input" type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} placeholder="e.g. 170" /></div>
+                  <div><label>Unit</label><select className="cyber-input" value={formData.heightUnit} onChange={e => setFormData({...formData, heightUnit: e.target.value})}><option value="cm">cm</option><option value="feet">feet</option></select></div>
                 </div>
               </div>
             )}
@@ -152,18 +148,18 @@ export default function OnboardingPage() {
             {step === 4 && (
               <div>
                   <div className="cyber-upload-zone" onClick={() => fileInputRef.current?.click()}>
-                    <Cpu size={48} color="#60a5fa" style={{ marginBottom: '1.5rem' }} />
-                    <h3 style={{ color: '#fff', fontSize: '1.8rem' }}>Direct Bio-Upload</h3>
-                    <p style={{ color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem' }}>DOCX, PDF, XLS, JPG supported</p>
+                    <Upload size={32} color="#60a5fa" style={{ marginBottom: '1rem' }} />
+                    <h3 style={{ color: '#fff' }}>Upload Medical Reports</h3>
+                    <p style={{ color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem' }}>PDF, Images, Excel, Word</p>
                     <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" />
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.5rem' }}>{formData.uploadedFiles.map((fn, i) => <span key={i} className="cyber-badge">{fn}</span>)}</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>{formData.uploadedFiles.map((fn, i) => <span key={i} className="cyber-badge">{fn}</span>)}</div>
 
-                  <div style={{ marginTop: '4rem' }}>
-                    <label>Assisted Medication Protocol?</label>
+                  <div style={{ marginTop: '3.5rem' }}>
+                    <label>Are you taking any medication?</label>
                     <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem' }}>
-                        <button style={{ flex: 1 }} className={formData.medication === 'Yes' ? 'cyber-btn-active' : 'cyber-btn'} onClick={() => setFormData({...formData, medication: 'Yes'})}>YES [ON]</button>
-                        <button style={{ flex: 1 }} className={formData.medication === 'No' ? 'cyber-btn-active' : 'cyber-btn'} onClick={() => setFormData({...formData, medication: 'No'})}>NO [OFF]</button>
+                        <button style={{ flex: 1 }} className={formData.medication === 'Yes' ? 'cyber-btn-active' : 'cyber-btn'} onClick={() => setFormData({...formData, medication: 'Yes'})}>YES</button>
+                        <button style={{ flex: 1 }} className={formData.medication === 'No' ? 'cyber-btn-active' : 'cyber-btn'} onClick={() => setFormData({...formData, medication: 'No'})}>NO</button>
                     </div>
                   </div>
               </div>
@@ -172,85 +168,29 @@ export default function OnboardingPage() {
             {step === 5 && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 {['Weight Gain', 'Weight Loss', 'Healthy', 'Muscle Gain'].map(goal => (
-                  <button key={goal} className={formData.goal === goal ? 'cyber-btn-active' : 'cyber-btn'} onClick={() => setFormData({...formData, goal})} style={{ height: '160px', flexDirection: 'column', borderRadius: '2.5rem' }}>
-                    <Target size={36} />
-                    <span style={{ fontSize: '1.1rem', fontWeight: 900, marginTop: '1rem' }}>{goal}</span>
+                  <button key={goal} className={formData.goal === goal ? 'cyber-btn-active' : 'cyber-btn'} onClick={() => setFormData({...formData, goal})} style={{ height: '140px', flexDirection: 'column', borderRadius: '1.5rem' }}>
+                    <Target size={32} />
+                    <span style={{ fontSize: '1rem', fontWeight: 900, marginTop: '0.5rem' }}>{goal}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '3rem', marginTop: '6rem' }}>
-            <button className="cyber-btn" onClick={step === 1 ? () => router.push("/login") : handleBack} style={{ flex: 1 }}>{step === 1 ? 'CANCEL' : 'BACK'}</button>
-            <button className="cyber-btn-active" onClick={step === 5 ? handleSubmit : handleNext} style={{ flex: 1 }}>{step === 5 ? 'INITIALIZE FINAL' : 'PROCEED'} <ChevronRight size={18} /></button>
+          <div style={{ display: 'flex', gap: '2rem', marginTop: '5rem' }}>
+            <button className="cyber-btn" onClick={handleBack} disabled={step === 1} style={{ flex: 1 }}>{step === 1 ? 'CANCEL' : 'BACK'}</button>
+            <button className="cyber-btn-active" onClick={step === 5 ? handleSubmit : handleNext} style={{ flex: 1 }}>{step === 5 ? 'FINISH' : 'NEXT'} <ChevronRight size={18} /></button>
           </div>
         </motion.div>
       </AnimatePresence>
 
       <style jsx global>{`
-        .cyber-input {
-          background: rgba(255,255,255,0.05) !important;
-          border: 1px solid rgba(255,255,255,0.1) !important;
-          color: #fff !important;
-          font-weight: 700 !important;
-          letter-spacing: 0.05em !important;
-          padding: 1.5rem !important;
-          border-radius: 1.25rem !important;
-        }
-        .cyber-input:focus {
-          border-color: #3b82f6 !important;
-          background: rgba(255,255,255,0.1) !important;
-          box-shadow: 0 0 20px rgba(59, 130, 246, 0.2) !important;
-        }
-        .cyber-btn {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          color: rgba(255,255,255,0.6);
-          padding: 1.5rem;
-          border-radius: 4rem;
-          font-weight: 900;
-          transition: all 0.3s;
-        }
-        .cyber-btn:hover {
-          background: rgba(255,255,255,0.1);
-          color: #fff;
-        }
-        .cyber-btn-active {
-          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-          color: #fff;
-          padding: 1.5rem;
-          border-radius: 4rem;
-          font-weight: 950;
-          box-shadow: 0 15px 30px rgba(59, 130, 246, 0.4);
-          transition: all 0.3s;
-        }
-        .cyber-btn-active:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 20px 40px rgba(59, 130, 246, 0.6);
-        }
-        .cyber-upload-zone {
-          border: 2px dashed rgba(255,255,255,0.2);
-          background: rgba(255,255,255,0.02);
-          border-radius: 2.5rem;
-          padding: 5rem;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.3s;
-        }
-        .cyber-upload-zone:hover {
-          border-color: #3b82f6;
-          background: rgba(255,255,255,0.05);
-        }
-        .cyber-badge {
-          background: rgba(59, 130, 246, 0.2);
-          color: #60a5fa;
-          padding: 0.5rem 1rem;
-          border-radius: 2rem;
-          font-size: 0.75rem;
-          font-weight: 800;
-          border: 1px solid rgba(59, 130, 246, 0.3);
-        }
+        .cyber-input { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: #fff !important; padding: 1.25rem !important; border-radius: 1rem !important; }
+        .cyber-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 1.25rem; border-radius: 3rem; font-weight: 900; }
+        .cyber-btn-active { background: #3b82f6; color: #fff; padding: 1.25rem; border-radius: 3rem; font-weight: 950; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4); }
+        .cyber-upload-zone { border: 2px dashed rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); border-radius: 1.5rem; padding: 3rem; text-align: center; cursor: pointer; }
+        .cyber-badge { background: rgba(59,130,246,0.2); color: #60a5fa; padding: 0.4rem 0.8rem; border-radius: 2rem; font-size: 0.7rem; }
+        label { color: rgba(255,255,255,0.6); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-top: 1.5rem; display: block; }
       `}</style>
     </div>
   );
