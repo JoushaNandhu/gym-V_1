@@ -3,20 +3,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { differenceInYears, parseISO } from "date-fns";
+import { differenceInYears, differenceInMonths, parseISO } from "date-fns";
 import { ChevronRight, ChevronLeft, Sparkles, User, MapPin, Scale, Stethoscope, Target, Calendar as CalendarIcon } from "lucide-react";
 
-// Simplified list for countries and states (sample)
+// Alphabetically sorted countries
 const countries = [
-  "India", "USA", "United Kingdom", "Canada", "Australia", "Germany", "France", "Japan", "Brazil", "South Africa"
-];
+  "Australia", "Brazil", "Canada", "France", "Germany", "India", "Japan", "South Africa", "United Kingdom", "USA"
+].sort();
 
 const statesMap: any = {
-  "India": ["Tamil Nadu", "Karnataka", "Maharashtra", "Delhi", "Kerala", "Gujarat", "Punjab", "West Bengal"],
-  "USA": ["California", "Texas", "New York", "Florida", "Illinois", "Washington", "Nevada"],
-  "United Kingdom": ["England", "Scotland", "Wales", "Northern Ireland"],
-  "Canada": ["Ontario", "Quebec", "British Columbia", "Alberta"],
-  // Add more as needed or default to a text input if not in map
+  "India": ["Andhra Pradesh", "Delhi", "Gujarat", "Karnataka", "Kerala", "Maharashtra", "Punjab", "Tamil Nadu", "West Bengal"].sort(),
+  "USA": ["Alabama", "California", "Florida", "Illinois", "Nevada", "New York", "Texas", "Washington"].sort(),
+  "United Kingdom": ["England", "Northern Ireland", "Scotland", "Wales"].sort(),
+  "Canada": ["Alberta", "British Columbia", "Ontario", "Quebec"].sort(),
+  "Germany": ["Bavaria", "Berlin", "Hamburg", "Saxony"].sort(),
 };
 
 export default function OnboardingPage() {
@@ -31,8 +31,14 @@ export default function OnboardingPage() {
     if (formData.dob) {
       try {
         const birthDate = new Date(formData.dob);
-        const age = differenceInYears(new Date(), birthDate);
-        setFormData(prev => ({ ...prev, age: age.toString() }));
+        const today = new Date();
+        const years = differenceInYears(today, birthDate);
+        const months = differenceInMonths(today, birthDate) % 12;
+        
+        let ageStr = `${years} Years`;
+        if (months > 0) ageStr += `, ${months} Month${months > 1 ? 's' : ''}`;
+        
+        setFormData(prev => ({ ...prev, age: ageStr }));
       } catch (e) {
         console.error("Date error", e);
       }
@@ -47,109 +53,90 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+    <div className="container flex-center">
       <AnimatePresence mode="wait">
         <motion.div
-           key={step} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -30 }}
-           className="card" style={{ width: '100%', maxWidth: '600px', padding: '3.5rem' }}
+           key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
+           className="card" style={{ width: '100%', maxWidth: '650px' }}
         >
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <span className="badge" style={{ marginBottom: '1.25rem' }}>PHASE 0{step}</span>
-            <h1 className="glitter-text" style={{ fontSize: '2.8rem', letterSpacing: '-0.05em' }}>
-               {step === 1 && "Identity"}
-               {step === 2 && "Locality"}
-               {step === 3 && "Physique"}
-               {step === 4 && "Vitality"}
-               {step === 5 && "Ambition"}
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <span className="badge">PHASE 0{step}</span>
+            <h1 className="glitter-text" style={{ fontSize: '3rem', marginTop: '1rem' }}>
+               {step === 1 && "Personal Identity"}
+               {step === 2 && "Global Locality"}
+               {step === 3 && "Physical Base"}
+               {step === 4 && "Clinical Archive"}
+               {step === 5 && "Core Ambition"}
             </h1>
           </div>
 
           {step === 1 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <label>Full Name</label>
-              <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. John Doe" />
+            <motion.div initial={{ opacity: 0 }}>
+              <label>Full Identity Name</label>
+              <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="John Doe" />
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem', marginTop: '2rem' }}>
+              <div className="grid-2" style={{ marginTop: '2rem' }}>
                 <div>
                   <label><CalendarIcon size={14} style={{ display: 'inline', marginRight: '6px' }} /> Date of Birth</label>
-                  <input 
-                    type="date" 
-                    value={formData.dob} 
-                    onChange={e => setFormData({...formData, dob: e.target.value})}
-                    style={{ colorScheme: 'dark' }} // Ensures calendar is visible in dark theme
-                  />
+                  <input type="date" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} />
                 </div>
                 <div>
-                   <label>Gender</label>
+                   <label>Gender Profile</label>
                    <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})}>
-                      <option value="">Status</option>
+                      <option value="">Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
-                      <option value="Prefer not to say">Private</option>
+                      <option value="Non-binary">Non-binary</option>
+                      <option value="Prefer not to say">Prefer not to say</option>
                    </select>
                 </div>
               </div>
 
               {formData.age && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }} 
-                  animate={{ opacity: 1, scale: 1 }}
-                  style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'var(--primary)', borderRadius: '1rem', textAlign: 'center', boxShadow: '0 0 20px var(--primary-glow)' }}
-                >
-                  <p style={{ fontSize: '0.8rem', fontWeight: 800, opacity: 0.8 }}>CALCULATED CHRONOLOGICAL AGE</p>
-                  <h2 style={{ fontSize: '2.5rem', fontWeight: 900 }}>{formData.age} Years</h2>
+                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} style={{ marginTop: '2.5rem', padding: '2rem', background: 'var(--primary)', borderRadius: '1.25rem', color: 'white', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 800, opacity: 0.9 }}>VERIFIED BIOLOGICAL AGE</p>
+                  <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: 'white' }}>{formData.age}</h2>
                 </motion.div>
               )}
             </motion.div>
           )}
 
           {step === 2 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <label><MapPin size={14} /> Living Country</label>
-              <select 
-                value={formData.country} 
-                onChange={e => setFormData({...formData, country: e.target.value, state: ""})}
-              >
-                <option value="">Select Country</option>
+            <motion.div initial={{ opacity: 0 }}>
+              <label><MapPin size={14} /> Domicile Country</label>
+              <select value={formData.country} onChange={e => setFormData({...formData, country: e.target.value, state: ""})}>
+                <option value="">Select Country (Ascending)</option>
                 {countries.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
 
               <div style={{ marginTop: '2rem' }}>
-                <label><MapPin size={14} /> State / Province</label>
+                <label><MapPin size={14} /> State / Province / Territory</label>
                 {statesMap[formData.country] ? (
-                  <select 
-                    value={formData.state} 
-                    onChange={e => setFormData({...formData, state: e.target.value})}
-                  >
-                    <option value="">Select State</option>
+                  <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})}>
+                    <option value="">Select State (Ascending)</option>
                     {statesMap[formData.country].map((s: string) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 ) : (
-                  <input 
-                    type="text" 
-                    value={formData.state} 
-                    placeholder="Enter State" 
-                    onChange={e => setFormData({...formData, state: e.target.value})} 
-                  />
+                  <input type="text" value={formData.state} placeholder="Enter State/Province" onChange={e => setFormData({...formData, state: e.target.value})} />
                 )}
               </div>
             </motion.div>
           )}
 
           {step === 3 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <label><Scale size={14} /> Current Body Mass (kg)</label>
-              <input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} placeholder="0.0" />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
+            <motion.div initial={{ opacity: 0 }}>
+              <label><Scale size={14} /> Net Mass (kg)</label>
+              <input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} placeholder="70.5" />
+              <div className="grid-2" style={{ marginTop: '2.5rem' }}>
                 <div>
-                   <label>Height Value</label>
-                   <input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} placeholder="0.0" />
+                   <label>Biological Height</label>
+                   <input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} placeholder="175" />
                 </div>
                 <div>
-                   <label>Measurement Unit</label>
+                   <label>Measurement Axis</label>
                    <select value={formData.heightUnit} onChange={e => setFormData({...formData, heightUnit: e.target.value})}>
                       <option value="cm">cm</option>
-                      <option value="feet">ft</option>
+                      <option value="feet">ft/in</option>
                    </select>
                 </div>
               </div>
@@ -157,16 +144,16 @@ export default function OnboardingPage() {
           )}
 
           {step === 4 && (
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div style={{ padding: '3rem', border: '1px solid var(--border)', borderRadius: '1.5rem', background: 'var(--secondary)', textAlign: 'center' }}>
-                   <Stethoscope size={48} color="#a855f7" style={{ marginBottom: '1.5rem' }} />
-                   <h3>Upload Biometric Records</h3>
-                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', marginTop: '0.5rem' }}>Medical & Lab Archives (Optional)</p>
-                   <button className="secondary" style={{ width: '100%', marginTop: '2.5rem', borderRadius: '3rem' }}>Browse Archives</button>
+             <motion.div initial={{ opacity: 0 }}>
+                <div className="upload-zone" style={{ border: '2px dashed #e2e8f0', background: '#fff' }}>
+                   <Stethoscope size={48} color="var(--primary-solid)" style={{ marginBottom: '1rem' }} />
+                   <h3 style={{ color: '#0f172a' }}>Sync Health Records</h3>
+                   <p style={{ color: 'var(--muted)', marginTop: '0.5rem' }}>Inject biological data (Optional)</p>
+                   <button className="secondary" style={{ width: '100%', marginTop: '2rem' }}>Open Archives</button>
                 </div>
                 <div style={{ marginTop: '3.5rem' }}>
-                   <label>Active Medication Program?</label>
-                   <div className="button-group" style={{ marginTop: '1rem' }}>
+                   <label>Chemical Medication Program?</label>
+                   <div className="button-group" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                       <button style={{ flex: 1 }} className={formData.medication === 'Yes' ? 'primary' : 'secondary'} onClick={() => setFormData({...formData, medication: 'Yes'})}>YES</button>
                       <button style={{ flex: 1 }} className={formData.medication === 'No' ? 'primary' : 'secondary'} onClick={() => setFormData({...formData, medication: 'No'})}>NO</button>
                    </div>
@@ -175,11 +162,10 @@ export default function OnboardingPage() {
           )}
 
           {step === 5 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-               <label>Select Your Biological Objective</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
+            <motion.div initial={{ opacity: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                 {['Weight Gain', 'Weight Loss', 'Healthy', 'Muscle Gain'].map(goal => (
-                  <button key={goal} className={formData.goal === goal ? 'primary' : 'secondary'} onClick={() => setFormData({...formData, goal})} style={{ height: '140px', flexDirection: 'column', gap: '1rem' }}>
+                  <button key={goal} className={formData.goal === goal ? 'primary' : 'secondary'} onClick={() => setFormData({...formData, goal})} style={{ height: '140px', flexDirection: 'column', borderRadius: '1.5rem' }}>
                     <Target size={32} />
                     <span style={{ fontSize: '1rem', fontWeight: 800 }}>{goal}</span>
                   </button>
@@ -188,14 +174,14 @@ export default function OnboardingPage() {
             </motion.div>
           )}
 
-          <div className="button-group" style={{ marginTop: '4.5rem' }}>
+          <div className="button-group" style={{ display: 'flex', gap: '2rem', marginTop: '4rem' }}>
             {step > 1 ? (
-              <button className="secondary" style={{ borderRadius: '3rem' }} onClick={handleBack}><ChevronLeft size={20} /> Back</button>
-            ) : <div />}
+              <button className="secondary" onClick={handleBack} style={{ flex: 1 }}><ChevronLeft size={18} /> Back</button>
+            ) : <div style={{ flex: 1 }} />}
             {step < 5 ? (
-              <button className="primary" style={{ borderRadius: '3rem' }} onClick={handleNext} disabled={step === 1 && !formData.name}>Next Phase <ChevronRight size={20} /></button>
+              <button className="primary" onClick={handleNext} style={{ flex: 1 }} disabled={step === 1 && !formData.name}>Next Phase <ChevronRight size={18} /></button>
             ) : (
-              <button className="primary" style={{ borderRadius: '3rem' }} onClick={handleSubmit} disabled={!formData.goal}><Sparkles size={20} /> Complete Calibration</button>
+              <button className="primary" onClick={handleSubmit} style={{ flex: 1 }} disabled={!formData.goal}><Sparkles size={18} /> Finish Setup</button>
             )}
           </div>
         </motion.div>
