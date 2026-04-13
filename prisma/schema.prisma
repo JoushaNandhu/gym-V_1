@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id               String   @id @default(cuid())
+  emailOrMobile    String   @unique
+  name             String?
+  dob              DateTime?
+  gender           String?
+  state            String?
+  country          String?
+  weight           Float?
+  height           Float?
+  heightUnit       String?  @default("cm")
+  goal             String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  medicalRecords   MedicalRecord[]
+  medications      Medication[]
+  dietPlans        DietPlan[]
+}
+
+model MedicalRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // "REPORT" or "BLOOD_TEST"
+  fileUrl   String
+  fileName  String
+  createdAt DateTime @default(now())
+}
+
+model Medication {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  dosage    String
+  frequency String
+  createdAt DateTime @default(now())
+}
+
+model DietPlan {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  planData      String   // JSON stringified diet plan
+  calories      Int?
+  protein       String?
+  createdAt     DateTime @default(now())
+}
