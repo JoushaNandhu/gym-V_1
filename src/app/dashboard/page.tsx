@@ -258,7 +258,7 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="card" style={{ background: 'var(--primary)', padding: '3rem', position: 'relative', overflow: 'hidden' }}>
-           <LayoutDashboard style={{ position: 'absolute', right: '-20px', bottom: '-20px', size: 200, opacity: 0.1 }} />
+           <LayoutDashboard size={200} style={{ position: 'absolute', right: '-20px', bottom: '-20px', opacity: 0.1 }} />
            <p style={{ fontWeight: 900, opacity: 0.8, fontSize: '0.9rem', letterSpacing: '0.2em' }}>MISSION PARAMETER</p>
            <h2 style={{ fontSize: '3rem', margin: '1rem 0' }}>{profile.goal}</h2>
            <div style={{ height: '12px', background: 'rgba(255,255,255,0.2)', borderRadius: '6px', overflow: 'hidden', marginTop: '2rem' }}>
