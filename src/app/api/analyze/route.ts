@@ -8,26 +8,30 @@ const openai = new OpenAI({
 export async function POST(req: Request) {
   try {
     const formData = await req.json();
-    const { image, type } = formData; // image is base64 string
+    const { image, type } = formData;
 
     if (!image) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
     const prompt = `
-      You are a specialized medical report analyzer. 
-      Analyze the provided ${type} and extract the key metrics.
-      Provide a highly precise JSON response.
-      The user specifically wants to see exact values to the decimal point (e.g., Temperature: 98.6).
+      You are an elite Medical Analysis Agent. Analyze the provided ${type} (Blood Test/Medical Report/Medication).
       
-      Return a JSON object with:
-      - title: A relevant title for the analysis
-      - summary: A brief 2-sentence summary of the report
-      - metrics: An array of objects { label: string, value: string, unit: string, status: "Normal" | "Attention" }
-      - interpretation: A detailed clinical interpretation of what these numbers mean for someone tracking gym/health.
-      
-      Look for values like Body Temperature, Heart Rate, Blood Sugar, Cholesterol, etc., depending on the report type.
-      If no specific value is found, indicate "Not found in report".
+      CRITICAL: You must return a valid JSON object with the following structure:
+      {
+        "title": "A strong professional title",
+        "summary": "2-sentence executive summary",
+        "metrics": [
+          {"label": "Metric Name", "value": "Number/Value", "unit": "Unit", "status": "Normal" | "Attention"}
+        ],
+        "improvements": ["List of things the user needs to work on or improve based on these results"],
+        "risks": ["Potential issues or health risks identified in the report"],
+        "positives": ["Good points or healthy indicators found"],
+        "interpretation": "Detailed clinical interpretation for a fitness/gym enthusiast"
+      }
+
+      Focus on precision. If a value is 0.1, show 0.1. 
+      Ensure for every metric you define if it is 'Normal' or 'Attention'.
     `;
 
     const response = await openai.chat.completions.create({
@@ -46,14 +50,22 @@ export async function POST(req: Request) {
           ],
         },
       ],
-      max_tokens: 1000,
+      max_tokens: 1500,
       response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;
-    return NextResponse.json(JSON.parse(content || '{}'));
+    const parsed = JSON.parse(content || '{}');
+
+    // Ensure metrics exists
+    if (!parsed.metrics) parsed.metrics = [];
+    if (!parsed.improvements) parsed.improvements = [];
+    if (!parsed.risks) parsed.risks = [];
+    if (!parsed.positives) parsed.positives = [];
+
+    return NextResponse.json(parsed);
   } catch (error: any) {
     console.error("Analysis Error:", error);
-    return NextResponse.json({ error: "Failed to analyze report: " + error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to analyze: " + error.message }, { status: 500 });
   }
 }
