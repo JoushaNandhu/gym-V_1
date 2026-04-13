@@ -16,7 +16,8 @@ import {
   Save,
   ScanSearch,
   X,
-  FileText
+  FileText,
+  RefreshCw
 } from "lucide-react";
 
 export default function NutritionPage() {
