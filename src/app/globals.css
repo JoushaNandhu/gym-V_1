@@ -20,9 +20,6 @@
 
 body {
   background: var(--background);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.05) 0%, transparent 40%);
   color: var(--foreground);
   font-family: 'Outfit', 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -36,7 +33,7 @@ body {
   padding: 4rem 2rem;
 }
 
-/* Glassmorphism V2 */
+/* Glassmorphism Card */
 .card {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
@@ -45,15 +42,9 @@ body {
   border-radius: var(--radius);
   padding: 3rem;
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-}
-
-.card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 50px -15px rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.2);
 }
 
 /* Glitter Buttons */
@@ -61,48 +52,26 @@ button {
   cursor: pointer;
   border-radius: 3rem;
   font-weight: 800;
-  padding: 1.1rem 2.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 1rem 2rem;
+  transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
   border: none;
-  font-size: 1.05rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  position: relative;
-  overflow: hidden;
+  font-size: 1rem;
 }
 
 button.primary {
   background: var(--primary);
-  background-size: 200% auto;
   color: white;
-  box-shadow: 0 10px 25px -5px var(--primary-glow);
-  animation: shimmer 4s infinite linear;
-}
-
-@keyframes shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-
-button.primary:hover {
-  transform: scale(1.05);
-  box-shadow: 0 15px 35px -5px var(--primary-glow);
-  filter: brightness(1.1);
+  box-shadow: 0 10px 20px -5px var(--primary-glow);
 }
 
 button.secondary {
   background: white;
   color: #1e293b;
   border: 1px solid #e2e8f0;
-}
-
-button.secondary:hover {
-  background: #f8fafc;
-  transform: translateY(-2px);
 }
 
 /* AI Scanning Animation */
@@ -120,88 +89,73 @@ button.secondary:hover {
 
 @keyframes scan {
   0% { top: 0% }
-  50% { top: 100% }
-  100% { top: 0% }
+  100% { top: 100% }
 }
 
-/* Modern Inputs with Glow */
 input, select, textarea {
   width: 100%;
   background: var(--input-bg);
   border: 1px solid #e2e8f0;
   border-radius: 1rem;
-  padding: 1.25rem 1.75rem;
+  padding: 1.25rem;
   color: #0f172a;
-  font-size: 1.1rem;
-  transition: all 0.3s;
-  margin-top: 0.75rem;
 }
 
-input:focus, select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-  background: white;
-}
-
-label {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #475569;
-  display: block;
-  margin-top: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-h1 {
-  font-size: 4rem;
-  font-weight: 950;
-  letter-spacing: -0.05em;
-  color: #0f172a;
-  line-height: 1;
-}
-
+h1 { font-size: 3.5rem; font-weight: 950; line-height: 1; margin-bottom: 1rem; }
 .glitter-text {
   background: var(--primary);
-  background-size: 200% auto;
-  animation: shimmer 5s infinite linear;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
 
 .badge {
-  padding: 0.6rem 1.5rem;
-  border-radius: 3rem;
-  font-size: 0.8rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
   font-weight: 900;
-  background: rgba(59, 130, 246, 0.08);
+  background: rgba(59, 130, 246, 0.1);
   color: #2563eb;
   border: 1px solid rgba(59, 130, 246, 0.1);
-  text-transform: uppercase;
 }
 
-/* Progress Stepper */
-.progress-bar {
-  height: 6px;
-  background: #f1f5f9;
-  border-radius: 3px;
-  overflow: hidden;
-  margin: 2rem 0;
+.spinning { animation: spin 1s infinite linear; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ========= MOBILE RESPONSIVENESS (Manage for Small Screens) ========= */
+@media (max-width: 1024px) {
+  h1 { font-size: 2.8rem; }
+  .container { padding: 2rem 1.5rem; }
+  .card { padding: 2rem; }
 }
 
-.progress-fill {
-  height: 100%;
-  background: var(--primary);
-  width: 0%;
-  transition: width 0.5s ease-out;
+@media (max-width: 768px) {
+  h1 { font-size: 2.2rem; }
+  .grid-2, .analyzer-grid, .agent-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+  
+  /* Sidebar stacking in Reports/Nutrition */
+  .reports-layout, .nutrition-layout {
+    grid-template-columns: 1fr !important;
+  }
+  
+  button { width: 100%; padding: 1.25rem; }
+  
+  .badge { font-size: 0.65rem; }
+  
+  /* Navigation Fixes */
+  header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1.5rem;
+  }
+  
+  header button { width: auto; align-self: flex-start; }
 }
 
-.spinning {
-  animation: spin 1.5s infinite cubic-bezier(0.5, 0, 0.5, 1);
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@media (max-width: 480px) {
+  h1 { font-size: 1.8rem; }
+  .card { padding: 1.5rem; border-radius: 1rem; }
 }
